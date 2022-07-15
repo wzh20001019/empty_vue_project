@@ -1,5 +1,7 @@
 <template>
-  <div>123</div>
+  <div>
+    <button ref="box">click</button>
+  </div>
 </template>
 
 <script>
@@ -13,9 +15,11 @@ import {
   readonly,
   isRef,
   isReactive,
+  onMounted,
 } from 'vue'
 
-// import RxJS from 'rxjs'
+import { Subject, fromEvent, of } from 'rxjs'
+import { map, filter } from 'rxjs/operators'
 
 export default {
   name: 'PageProject',
@@ -24,7 +28,44 @@ export default {
   },
 
   setup() {
-    return {}
+    const box = ref(null)
+
+    const data$ = new Subject()
+
+    onMounted(() => {
+      data$.subscribe((value) => {
+        console.log(value)
+      })
+
+      data$.next(1)
+
+      // 2.
+      const click$ = fromEvent(box.value, 'click')
+
+      let count = 0
+      click$.subscribe((event) => {
+        count++
+
+        data$.next(count)
+      })
+
+      // 3.
+      const counterMap$ = click$.pipe(map((value, index) => index + 1))
+
+      counterMap$.subscribe((value) => {
+        console.log(value)
+      })
+
+      const counterFilter$ = counterMap$.pipe(filter((value) => value > 2))
+
+      counterFilter$.subscribe((value) => {
+        console.log(value)
+      })
+    })
+
+    return {
+      box,
+    }
   },
 }
 </script>
